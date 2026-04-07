@@ -1,8 +1,15 @@
+import connectPgSimple from 'connect-pg-simple';
+import 'dotenv/config';
 import express, { Express } from 'express';
+import session from 'express-session';
 import './config.js'; // do not remove this line
+// import { getTodo, getTodos } from './controllers/todos.js';
+import { getUserProfile, logIn, logOut, registerUser } from './controllers/usersController.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
+const { PORT, COOKIE_SECRET } = process.env;
+const PostgresStore = connectPgSimple(session);
 
 app.use(sessionMiddleware); // Setup session management middleware
 app.use(express.json()); // Setup JSON body parsing middleware
@@ -15,7 +22,30 @@ app.use(express.static('public', { extensions: ['html'] }));
 
 // -- Routes --------------------------------------------------
 // Register your routes below this line
+// app.get('/todos', getTodos);
+// app.get('/todos/:todoId', getTodo);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening on http://localhost:${process.env.PORT}`);
 });
+
+// I have no clue where to put this tbh.
+app.use(
+  session({
+    store: new PostgresStore({ createTableIfMissing: true }),
+    secret: COOKIE_SECRET,
+    cookie: { maxAge: 8 * 60 * 60 * 1000 },
+    name: 'session',
+    resave: false,
+    saveUninitialized: false,
+  }),
+);
+
+app.use(express.json());
+
+app.post('/users', registerUser);
+app.post('/login', logIn);
+app.delete('/sessions', logOut);
+app.get('/users/:userId', getUserProfile);
+
+app.listen(PORT, () => console.log('Listening to stupidity at http://localhost:${PORT}'));
