@@ -3,7 +3,7 @@ import 'dotenv/config';
 import express, { Express } from 'express';
 import session from 'express-session';
 import './config.js'; // do not remove this line
-// import { getTodo, getTodos } from './controllers/todos.js';
+import { createChild, getMyChildren } from './controllers/childrenController.js';
 import { getUserProfile, logIn, logOut, registerUser } from './controllers/usersController.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
@@ -22,8 +22,6 @@ app.use(express.static('public', { extensions: ['html'] }));
 
 // -- Routes --------------------------------------------------
 // Register your routes below this line
-// app.get('/todos', getTodos);
-// app.get('/todos/:todoId', getTodo);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening on http://localhost:${process.env.PORT}`);
@@ -47,5 +45,8 @@ app.post('/users', registerUser);
 app.post('/login', logIn);
 app.delete('/sessions', logOut);
 app.get('/users/:userId', getUserProfile);
+//app.get('/users/unverified', getUnverifiedUserEmails);
+app.post('/children', createChild);
+app.get('/children', getMyChildren);
 
 app.listen(PORT, () => console.log('Listening to stupidity at http://localhost:${PORT}'));

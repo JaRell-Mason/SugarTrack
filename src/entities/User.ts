@@ -1,5 +1,6 @@
-import { BeforeInsert, Column, Entity, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
+import { Child } from './Child.js';
 
 @Entity()
 export class User {
@@ -19,4 +20,7 @@ export class User {
 
   @Column({ default: false })
   verifiedEmail: boolean;
+
+  @OneToMany(() => Child, (child) => child.parent)
+  children: Child[];
 }

@@ -28,7 +28,7 @@ async function registerUser(req: Request, res: Response): Promise<void> {
 async function logIn(req: Request, res: Response): Promise<void> {
   const result = RegistrationSchema.safeParse(req.body);
   if (!result.success) {
-    res.status(400).json(result.error.flatten());
+    res.status(400).json({ errors: result.error.flatten() });
     return;
   }
 
@@ -36,26 +36,24 @@ async function logIn(req: Request, res: Response): Promise<void> {
 
   try {
     const user = await getUserByEmail(email);
-    if (!user) {
-      req.session.logInAttempts = (req.session.logInAttempts ?? 0) + 1;
-      res.sendStatus(403);
-      return;
-    }
-
-    if (!(await argon2.verify(user.passwordHash, password))) {
+    if (!user || !(await argon2.verify(user.passwordHash, password))) {
       req.session.logInAttempts = (req.session.logInAttempts ?? 0) + 1;
       res.sendStatus(403);
       return;
     }
 
     await req.session.clearSession();
-    req.session.authenticatedUser = { userId: user.userId, email: user.email };
+    req.session.authenticatedUser = {
+      userId: user.userId,
+      email: user.email,
+    };
     req.session.isLoggedIn = true;
 
     res.sendStatus(200);
   } catch (err) {
     console.error(err);
-    res.sendStatus(500);
+    const databaseErrorMessage = parseDatabaseError(err);
+    res.status(500).json(databaseErrorMessage);
   }
 }
 

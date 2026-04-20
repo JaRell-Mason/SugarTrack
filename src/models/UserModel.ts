@@ -25,4 +25,11 @@ async function getUserByEmail(email: string): Promise<User | null> {
   });
 }
 
-export { addUser, getAllUsers, getUserByEmail, getUserById };
+async function getActiveUserEmails(): Promise<User[]> {
+  return userRepository.find({
+    select: { userId: true, email: true },
+    where: { verifiedEmail: true },
+  });
+}
+
+export { addUser, getActiveUserEmails, getAllUsers, getUserByEmail, getUserById };
