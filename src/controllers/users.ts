@@ -11,10 +11,10 @@ async function registerUser(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const { email, passwordHash } = result.data;
+  const { email, passwordHash, displayName } = result.data;
 
   try {
-    const newUser = await addUser(email, passwordHash);
+    const newUser = await addUser(email, passwordHash, displayName);
     console.log(newUser);
     res.sendStatus(201);
   } catch (err) {

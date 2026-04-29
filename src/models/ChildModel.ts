@@ -28,19 +28,24 @@ async function getChildById(childId: string): Promise<Child | null> {
   });
 }
 
-async function updateChild(childId: string, name?: string, dateOfBirth?: string, isActive?: boolean): Promise<Child | null>{
-  const child =  await childRepository.findOne({ where: { childId } });
-  if(!child){ 
+async function updateChild(
+  childId: string,
+  name?: string,
+  dateOfBirth?: string,
+  isActive?: boolean,
+): Promise<Child | null> {
+  const child = await childRepository.findOne({ where: { childId } });
+  if (!child) {
     return null;
   }
 
-  if(name !== undefined){
-     child.name = name;
+  if (name !== undefined) {
+    child.name = name;
   }
-  if(dateOfBirth !== undefined){
+  if (dateOfBirth !== undefined) {
     child.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : undefined;
   }
-  if(isActive !== undefined ){
+  if (isActive !== undefined) {
     child.isActive = isActive;
   }
 
@@ -49,8 +54,7 @@ async function updateChild(childId: string, name?: string, dateOfBirth?: string,
 
 async function deleteChild(childId: string): Promise<boolean> {
   const result = await childRepository.delete(childId);
-  return result.affect === 1;
+  return result.affected === 1;
 }
 
 export { addChild, deleteChild, getChildById, getChildrenByParent, updateChild };
-

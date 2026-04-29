@@ -4,7 +4,14 @@ import express, { Express } from 'express';
 import session from 'express-session';
 import './config.js'; // do not remove this line
 import { createChild, getMyChildren } from './controllers/childrenController.js';
-import { getUserProfile, logIn, logOut, registerUser } from './controllers/usersController.js';
+import {
+  getAllUnverifiedEmails,
+  getUserProfile,
+  getVerifiedEmails,
+  logIn,
+  logOut,
+  registerUser,
+} from './controllers/usersController.js'; // No idea why it wrapped it like this.
 import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
@@ -45,7 +52,8 @@ app.post('/users', registerUser);
 app.post('/login', logIn);
 app.delete('/sessions', logOut);
 app.get('/users/:userId', getUserProfile);
-//app.get('/users/unverified', getUnverifiedUserEmails);
+app.get('/users/unverified', getAllUnverifiedEmails);
+app.get('/users/verified', getVerifiedEmails);
 app.post('/children', createChild);
 app.get('/children', getMyChildren);
 

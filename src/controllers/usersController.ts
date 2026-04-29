@@ -1,6 +1,12 @@
 import argon2 from 'argon2';
 import type { Request, Response } from 'express';
-import { addUser, getUserByEmail, getUserById } from '../models/UserModel.js';
+import {
+  addUser,
+  getAllUnverifiedUsers,
+  getUserByEmail,
+  getUserById,
+  getVerifiedUsers,
+} from '../models/UserModel.js'; // I have no idea why it wrapped it like this.
 import { parseDatabaseError } from '../utils/db-utils.js';
 import { RegistrationSchema } from '../validators/authValidator.js';
 
@@ -11,11 +17,11 @@ async function registerUser(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const { email, password } = result.data;
+  const { email, password, displayName } = result.data;
 
   try {
     const passwordHash = await argon2.hash(password);
-    const newUser = await addUser(email, passwordHash);
+    const newUser = await addUser(email, passwordHash, displayName);
     console.log(newUser);
     res.status(201).json(newUser);
   } catch (err) {
@@ -43,9 +49,11 @@ async function logIn(req: Request, res: Response): Promise<void> {
     }
 
     await req.session.clearSession();
+
     req.session.authenticatedUser = {
       userId: user.userId,
       email: user.email,
+      displayName: user.displayName,
     };
     req.session.isLoggedIn = true;
 
@@ -80,9 +88,31 @@ async function getUserProfile(req: Request, res: Response): Promise<void> {
   res.status(200).json({ user });
 }
 
+async function getVerifiedEmails(req: Request, res: Response): Promise<void> {
+  try {
+    const verifiedUsers = await getVerifiedUsers();
+
+    res.status(200).json(verifiedUsers);
+  } catch (error) {
+    console.error('Error fetching verified users: ', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+async function getAllUnverifiedEmails(req: Request, res: Response): Promise<void> {
+  try {
+    const unverifiedUsers = await getAllUnverifiedUsers();
+
+    res.status(200).json(unverifiedUsers);
+  } catch (error) {
+    console.error('Error fetching unverified users: ', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
 async function logOut(req: Request, res: Response): Promise<void> {
   await req.session.clearSession();
   res.sendStatus(204); // 204 No Content — successful, nothing to return
 }
 
-export { getUserProfile, logIn, logOut, registerUser };
+export { getAllUnverifiedEmails, getUserProfile, getVerifiedEmails, logIn, logOut, registerUser };
