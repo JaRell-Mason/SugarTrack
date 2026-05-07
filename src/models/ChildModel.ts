@@ -30,26 +30,23 @@ async function getChildById(childId: string): Promise<Child | null> {
 
 async function updateChild(
   childId: string,
-  name?: string,
-  dateOfBirth?: string,
-  isActive?: boolean,
-): Promise<Child | null> {
+  updateData: { name?: string; dateOfBirth?: string },
+): Promise<any | null> {
   const child = await childRepository.findOne({ where: { childId } });
+
   if (!child) {
     return null;
   }
 
-  if (name !== undefined) {
-    child.name = name;
-  }
-  if (dateOfBirth !== undefined) {
-    child.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : undefined;
-  }
-  if (isActive !== undefined) {
-    child.isActive = isActive;
+  if (updateData.name !== undefined) {
+    child.name = updateData.name;
   }
 
-  return childRepository.save(child);
+  if (updateData.dateOfBirth !== undefined) {
+    child.dateOfBirth = new Date(updateData.dateOfBirth); // ← Convert string to Date
+  }
+
+  return await childRepository.save(child);
 }
 
 async function deleteChild(childId: string): Promise<boolean> {

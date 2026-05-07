@@ -2,13 +2,14 @@ import argon2 from 'argon2';
 import type { Request, Response } from 'express';
 import {
   addUser,
+  deleteUserById,
   getAllUnverifiedUsers,
   getUserByEmail,
   getUserById,
   getVerifiedUsers,
 } from '../models/UserModel.js'; // I have no idea why it wrapped it like this.
 import { parseDatabaseError } from '../utils/db-utils.js';
-import { RegistrationSchema } from '../validators/authValidator.js';
+import { LoginSchema, RegistrationSchema } from '../validators/authValidator.js';
 
 async function registerUser(req: Request, res: Response): Promise<void> {
   const result = RegistrationSchema.safeParse(req.body);
@@ -32,36 +33,42 @@ async function registerUser(req: Request, res: Response): Promise<void> {
 }
 
 async function logIn(req: Request, res: Response): Promise<void> {
-  const result = RegistrationSchema.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json({ errors: result.error.flatten() });
-    return;
-  }
-
-  const { email, password } = result.data;
-
   try {
-    const user = await getUserByEmail(email);
-    if (!user || !(await argon2.verify(user.passwordHash, password))) {
-      req.session.logInAttempts = (req.session.logInAttempts ?? 0) + 1;
-      res.sendStatus(403);
+    const result = LoginSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ errors: result.error.flatten() });
       return;
     }
 
-    await req.session.clearSession();
+    const { email, password } = result.data;
 
+    const user = await getUserByEmail(email);
+
+    if (!user || !(await argon2.verify(user.passwordHash, password))) {
+      req.session.logInAttempts = (req.session.logInAttempts ?? 0) + 1;
+      res.status(401).json({ message: 'Invalid email or password' });
+      return;
+    }
+
+    req.session.isLoggedIn = true;
     req.session.authenticatedUser = {
       userId: user.userId,
       email: user.email,
-      displayName: user.displayName,
+      displayName: user.displayName || null,
     };
-    req.session.isLoggedIn = true;
 
-    res.sendStatus(200);
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        userId: user.userId,
+        email: user.email,
+        displayName: user.displayName || null,
+      },
+    });
   } catch (err) {
-    console.error(err);
-    const databaseErrorMessage = parseDatabaseError(err);
-    res.status(500).json(databaseErrorMessage);
+    console.error('Login error:', err);
+    const errorMessage = parseDatabaseError(err);
+    res.status(500).json({ message: 'Server error', error: errorMessage });
   }
 }
 
@@ -110,9 +117,52 @@ async function getAllUnverifiedEmails(req: Request, res: Response): Promise<void
   }
 }
 
+async function getCurrentUser(req: Request, res: Response): Promise<void> {
+  if (req.session.isLoggedIn && req.session.authenticatedUser) {
+    res.json({
+      isLoggedIn: true,
+      user: req.session.authenticatedUser,
+    });
+  } else {
+    res.status(401).json({ isLoggedIn: false });
+  }
+}
+
 async function logOut(req: Request, res: Response): Promise<void> {
-  await req.session.clearSession();
+  try {
+    if (req.session) {
+      await req.session.clearSession();
+    }
+    res.status(200).json({ message: 'Logged out successfully' });
+    return;
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Logout failed' });
+    return;
+  }
+  //res.sendStatus(204); // 204 No Content — successful, nothing to return
+}
+
+async function deleteUser(req: Request, res: Response): Promise<void> {
+  const userId = req.params.userId as string;
+  const user = await getUserById(userId);
+
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  await deleteUserById(userId);
   res.sendStatus(204); // 204 No Content — successful, nothing to return
 }
 
-export { getAllUnverifiedEmails, getUserProfile, getVerifiedEmails, logIn, logOut, registerUser };
+export {
+  deleteUser,
+  getAllUnverifiedEmails,
+  getCurrentUser,
+  getUserProfile,
+  getVerifiedEmails,
+  logIn,
+  logOut,
+  registerUser,
+};

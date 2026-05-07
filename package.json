@@ -11,14 +11,11 @@
     "dev": "npm run build:server && concurrently -c cyan,green,magenta -k -n tsc,api,web \"npx tsc --watch --preserveWatchOutput\" \"node --no-warnings --watch ./dist/index.js\" \"npm run dev:client\"",
     "dev:client": "cd client && npm run dev",
     "start-dev": "node --es-module-specifier-resolution=node --no-warnings --watch ./dist/index.js",
-    "start-dev-browserSync": "node --no-warnings --watch bsync.mjs",
-    "start-dev-ui": "concurrently -c cyan,green -n server,browserSync \"npm:start-dev\" \"npm:start-dev-browserSync\"",
-    "start-once": "node --es-module-specifier-resolution=node --no-warnings ./dist/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "eslint .",
     "sync": "npx tsx scripts/sync.ts",
-    "postinstall": "cd client && npm install --no-audit --no-fund",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "npm test -- --watch"
+    "postinstall": "cd client && npm install --no-audit --no-fund"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -32,6 +29,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^25.6.0",
     "@types/nodemailer": "^7.0.5",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
@@ -48,6 +46,7 @@
     "jest": "^30.3.0",
     "prettier": "^3.8.0",
     "rimraf": "^6.1.2",
+    "supertest": "^7.2.2",
     "ts-jest": "^29.4.9",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.53.1"

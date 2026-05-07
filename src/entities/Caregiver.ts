@@ -1,34 +1,28 @@
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { Child } from './Child.js';
+import { User } from './User.js';
 
 @Entity()
-export class User {
+export class Caregiver {
   @PrimaryColumn()
-  userId: string;
+  caregiverId: string;
 
   @BeforeInsert()
   generateId(): void {
-    this.userId = uuidv7();
+    this.caregiverId = uuidv7();
   }
 
-  @Column({ unique: true })
-  email: string;
+  @ManyToOne(() => Child, (child) => child.caregivers, { nullable: false }) // ← arrow function
+  @JoinColumn()
+  child!: Child; // temporary 'any' to break cycle
 
-  @Column()
-  passwordHash: string;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  user: User;
 
-  @Column({ default: false })
-  verifiedEmail: boolean;
-
-  @Column({ default: null })
-  displayName: string;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  joinedOn: Date;
-
-  @OneToMany(() => Child, (child) => child.parent)
-  children: Child[];
+  @Column({ default: 'view' })
+  accessLevel: string = 'view';
 
   //@OneToOne(() => UserSettings, (settings) => settings.user, {
   //  cascade: true,
@@ -40,3 +34,4 @@ export class User {
 // Why is UserSettings commented out? Because I'm not wasting the 2 days before I have left before
 // I have to upload to production on figuring out how the fuck UserSettings.ts and User.ts aren't
 // fucking working. The UserSettings are what they are.
+// Copied from User.ts.

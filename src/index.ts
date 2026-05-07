@@ -3,9 +3,21 @@ import 'dotenv/config';
 import express, { Express } from 'express';
 import session from 'express-session';
 import './config.js'; // do not remove this line
-import { createChild, getMyChildren } from './controllers/childrenController.js';
+import {
+  addCaregiver,
+  createChild,
+  createThreshold,
+  deleteChildById,
+  getCaregivers,
+  getChildsIntake,
+  getMyChildren,
+  getThresholds,
+  updateChildController,
+} from './controllers/childrenController.js';
+import { recordIntake } from './controllers/foodController.js';
 import {
   getAllUnverifiedEmails,
+  getCurrentUser,
   getUserProfile,
   getVerifiedEmails,
   logIn,
@@ -30,10 +42,6 @@ app.use(express.static('public', { extensions: ['html'] }));
 // -- Routes --------------------------------------------------
 // Register your routes below this line
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server listening on http://localhost:${process.env.PORT}`);
-});
-
 // I have no clue where to put this tbh.
 app.use(
   session({
@@ -48,13 +56,22 @@ app.use(
 
 app.use(express.json());
 
-app.post('/users', registerUser);
-app.post('/login', logIn);
-app.delete('/sessions', logOut);
-app.get('/users/:userId', getUserProfile);
-app.get('/users/unverified', getAllUnverifiedEmails);
-app.get('/users/verified', getVerifiedEmails);
-app.post('/children', createChild);
-app.get('/children', getMyChildren);
+app.post('/api/users', registerUser);
+app.post('/api/login', logIn);
+app.delete('/api/sessions', logOut);
+app.get('/api/users/:userId', getUserProfile);
+app.get('/api/users/unverified', getAllUnverifiedEmails);
+app.get('/api/users/verified', getVerifiedEmails);
+app.post('/api/children', createChild);
+app.get('/api/children', getMyChildren);
+app.get('/api/children/:childId/intake', getChildsIntake);
+app.post('/api/children/:childId/caregivers', addCaregiver);
+app.get('/api/children/:childId/caregivers', getCaregivers);
+app.delete('/api/children/:childId', deleteChildById);
+app.put('/api/children/:childId', updateChildController);
+app.get('/api/me', getCurrentUser);
+app.post('/api/intake', recordIntake);
+app.post('/api/children/:childId/thresholds', createThreshold);
+app.get('/api/children/:childId/thresholds', getThresholds);
 
 app.listen(PORT, () => console.log('Listening to stupidity at http://localhost:${PORT}'));

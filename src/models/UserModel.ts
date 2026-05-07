@@ -63,8 +63,31 @@ async function getActiveUserEmails(): Promise<User[]> {
   });
 }
 
+async function updateUserEmail(userId: string, newEmail: string): Promise<User | null> {
+  const user = await userRepository.findOne({ where: { userId } });
+
+  if (!user) {
+    return null;
+  }
+
+  user.email = newEmail;
+
+  return userRepository.save(user);
+}
+
+async function deleteUserById(userId: string): Promise<void> {
+  const user = await userRepository.findOne({ where: { userId } });
+
+  if (!user) {
+    return;
+  }
+
+  await userRepository.remove(user);
+}
+
 export {
   addUser,
+  deleteUserById,
   getActiveUserEmails,
   getAllUnverifiedUsers,
   getAllUsers,
@@ -72,4 +95,5 @@ export {
   getUserById,
   getUserProfileData,
   getVerifiedUsers,
+  updateUserEmail,
 };

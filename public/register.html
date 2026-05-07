@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SugarTrack - Register</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0055aa;
+      }
+      .message {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Create Account</h1>
+
+    <div id="message"></div>
+
+    <form id="registerForm">
+      <input type="text" id="displayName" placeholder="Display Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required minlength="6" />
+      <button type="submit">Register</button>
+    </form>
+
+    <p>Already have an account? <a href="/login.html">Log in</a></p>
+
+    <script>
+      const form = document.getElementById('registerForm');
+      const messageDiv = document.getElementById('message');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        messageDiv.innerHTML = '';
+
+        const data = {
+          displayName: document.getElementById('displayName').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+        };
+
+        try {
+          const res = await fetch('/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            messageDiv.innerHTML = `<div class="message success">Account created successfully!</div>`;
+            setTimeout(() => {
+              window.location.href = '/login.html'; // or dashboard later
+            }, 1500);
+          } else {
+            messageDiv.innerHTML = `<div class="message error">Error: ${result.message || result.errors?.[0]?.message || 'Registration failed'}</div>`;
+          }
+        } catch (err) {
+          messageDiv.innerHTML = `<div class="message error">Network error. Is the server running?</div>`;
+        }
+      });
+    </script>
+  </body>
+</html>
